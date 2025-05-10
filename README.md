@@ -1,6 +1,11 @@
 # Random-Scale-Degree-Speaker-with-Tones
 Music Practice Utility: Says random note degrees, along with the tone for that degree.
 
+This is a AI generated file from Gemini 2.5 pro (preview).
+pip install pyttsx3 pygame numpy
+
+Intended to allow a musician to practice playing scale degrees relative to a given key note. 
+
 Key Features and Notes:
 
 Scale Degree Normalization: Handles various ways of writing scale degrees (e.g., "flat 3", "b3", "FLAT3" all become "B3").
@@ -10,8 +15,7 @@ Error Handling: Includes checks for missing libraries, invalid keys, and unrecog
 Timing: The --delay argument aims for the specified time between the start of one spoken element and the start of the next. The actual time taken for speech is not precisely factored in for simplicity, but the fixed tone duration is.
 
 
-This is a AI generated file from Gemini 2.5 pro (preview).
-pip install pyttsx3 pygame numpy
+
 
 
 
