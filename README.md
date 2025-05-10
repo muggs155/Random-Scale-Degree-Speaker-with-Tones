@@ -1,10 +1,11 @@
 # Random-Scale-Degree-Speaker-with-Tones
 Music Practice Utility: Says random note degrees, along with the tone for that degree.
 
-This is a AI generated file from Gemini 2.5 pro (preview).
-pip install pyttsx3 pygame numpy
-
 Intended to allow a musician to practice playing scale degrees relative to a given key note. 
+
+This is an AI generated file from Gemini 2.5 pro (preview), as an experiment in quickly generating a practical (?) utility. My guestimate is this would have easily taken me 1-4 days between library research and trying/testing. It was functional in under an hour wiht Gemini.
+
+pip install pyttsx3 pygame numpy
 
 Key Features and Notes:
 
