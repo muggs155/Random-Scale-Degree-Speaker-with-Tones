@@ -7,14 +7,13 @@ This is an AI generated file from Gemini 2.5 pro (preview), as an experiment in 
 
 pip install pyttsx3 pygame numpy
 
->>
-Key Features and Notes:
+# Key Features and Notes:
 
-.Scale Degree Normalization: Handles various ways of writing scale degrees (e.g., "flat 3", "b3", "FLAT3" all become "B3").
-.Key and Octave: You specify the root note of the key (C, C#, Db, etc.) and its octave. The tones for the scale degrees will be relative to this root.
-.Tone Duration and Volume: TONE_DURATION_SEC and TONE_AMPLITUDE_FACTOR can be adjusted at the top of the script if needed.
-.Error Handling: Includes checks for missing libraries, invalid keys, and unrecognized scale degrees.
-.Timing: The --delay argument aims for the specified time between the start of one spoken element and the start of the next. The actual time taken for speech is not precisely factored in for simplicity, but the fixed tone duration is.
+## Scale Degree Normalization: Handles various ways of writing scale degrees (e.g., "flat 3", "b3", "FLAT3" all become "B3").
+## Key and Octave: You specify the root note of the key (C, C#, Db, etc.) and its octave. The tones for the scale degrees will be relative to this root.
+## Tone Duration and Volume: TONE_DURATION_SEC and TONE_AMPLITUDE_FACTOR can be adjusted at the top of the script if needed.
+## Error Handling: Includes checks for missing libraries, invalid keys, and unrecognized scale degrees.
+## Timing: The --delay argument aims for the specified time between the start of one spoken element and the start of the next. The actual time taken for speech is not precisely factored in for simplicity, but the fixed tone duration is.
 
 
 
