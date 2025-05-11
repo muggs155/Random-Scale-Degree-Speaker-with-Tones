@@ -87,3 +87,17 @@ It uses pygame for sound generation, so you'll need to install it along with num
 Scale Degree Parsing: The input elements are now interpreted as musical scale degrees (e.g., "1", "flat 3", "5", "sharp 4"). The script normalizes these inputs (handles "flat", "sharp", "b", "#", and spacing) to determine the correct musical interval.
 Updated Dependencies: The script now explicitly checks for pygame and numpy in addition to pyttsx3 at startup.
 Tone Duration: A constant TONE_DURATION_SEC (defaulting to 0.5 seconds) defines how long each tone plays. The delay between spoken elements now accounts for this tone duration to maintain the desired overall timing.
+
+
+>>
+After a short delay (from 1 second up) after playing the tone, the tone name must be spoken.
+-----
+
+>>
+When speaking the note name, do not speak the octave. Additionally, the command line key should be a list of keys. Once all degree elements in a key have been played a given number of times, the key should switch to the next key in the list. On the first time a key is used from the key list, it should be spoken as "New Key" and then the key name, along with a 2 second delay.
+-----
+
+>>
+Do not speak or use enharmonic names unless specified.
+-----
+
