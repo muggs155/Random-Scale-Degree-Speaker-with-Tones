@@ -37,7 +37,7 @@ options:
 
 **Need to gather ALL the dialogs with Gemini and update this readme.**
 
-**use of ssml to get /eI/ sound for A -- '<speak><phoneme alphabet="ipa" ph="eɪ">A</phoneme></speak>'**
+**use of ssml to get /eI/ sound for A -- ```'<speak><phoneme alphabet="ipa" ph="eɪ">A</phoneme></speak>'```**
 
 # Key Features and Notes:
 
