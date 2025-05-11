@@ -34,7 +34,10 @@ options:
  ```
 # TODO
 **When speaking note name after a tone, sometimes the enharmonic is used. Seems to be in the get_note_name_from_midi(). Trying to work out dialog.**
+
 **Need to gather ALL the dialogs with Gemini and update this readme.**
+
+**use of ssml to get /eI/ sound for A -- '<speak><phoneme alphabet="ipa" ph="eɪ">A</phoneme></speak>'**
 
 # Key Features and Notes:
 
