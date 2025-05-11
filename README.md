@@ -7,6 +7,35 @@ This is an AI generated file from Gemini 2.5 pro (preview), as an experiment in 
 
 pip install pyttsx3 pygame numpy
 
+
+# command line options
+```
+usage: scale_degree_speaker.py [-h] --key KEY [--plays_per_key PLAYS_PER_KEY]
+                               [--delay DELAY] [--octave OCTAVE]
+                               [--tone_name_delay TONE_NAME_DELAY]
+                               elements_string
+
+Speaks random scale degrees, plays tones, speaks note names (contextually), and cycles
+through keys.
+
+positional arguments:
+  elements_string       Comma-separated scale degrees (e.g., "1,flat 3,5").
+
+options:
+  -h, --help            show this help message and exit
+  --key KEY             Comma-separated musical keys (e.g., "C,Db,F#").
+  --plays_per_key PLAYS_PER_KEY
+                        Times each unique degree is played per key before switching (min
+                        1, default: 1).
+  --delay DELAY         Approx. delay (s) between element cycles (default: 3.0).
+  --octave OCTAVE       Octave for key roots (e.g., 4 for C4, default: 4).
+  --tone_name_delay TONE_NAME_DELAY
+                        Delay (s) after tone before speaking its name (default: 1.0).
+ ```
+# TODO
+**When speaking note name after a tone, sometimes the enharmonic is used. Seems to be in the get_note_name_from_midi(). Trying to work out dialog.**
+**Need to gather ALL the dialogs with Gemini and update this readme.**
+
 # Key Features and Notes:
 
 **Scale Degree Normalization: Handles various ways of writing scale degrees (e.g., "flat 3", "b3", "FLAT3" all become "B3").**
