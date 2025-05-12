@@ -30,9 +30,9 @@ NOTES_SEMITONES_FROM_C = { # For parsing input key names
     "G#": 8, "AB": 8, "A": 9, "A#": 10, "BB": 10, "B": 11, "CB": 11,
 }
 DEGREE_SEMITONE_INTERVALS = { # Internal representation using 'B' for flat, '#' for sharp
-    "1": 0, "B2": 1, "2": 2, "B3": 3, "3": 4, "4": 5,
+        "1": 0, "#1":1, "B2": 1, "2": 2, "#2":3, "B3": 3, "3": 4, "4": 5,
     "B5": 6, "#4": 6, "5": 7, "B6": 8, "#5": 8, "6": 9,
-    "B7": 10, "7": 11
+    "B7": 10, "7": 11, "8":12, "B9":1, "9":2, "#9":3, "11":5, "13":9,
 }
 
 # Lists for speaking calculated note names, chosen based on key context and degree
