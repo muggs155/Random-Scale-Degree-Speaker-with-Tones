@@ -29,18 +29,18 @@ NOTES_SEMITONES_FROM_C = { # For parsing input key names
     "E": 4, "FB": 4, "F": 5, "E#": 5, "F#": 6, "GB": 6, "G": 7,
     "G#": 8, "AB": 8, "A": 9, "A#": 10, "BB": 10, "B": 11, "CB": 11,
 }
-DEGREE_SEMITONE_INTERVALS = {
+DEGREE_SEMITONE_INTERVALS = { # Internal representation using 'B' for flat, '#' for sharp
     "1": 0, "B2": 1, "2": 2, "B3": 3, "3": 4, "4": 5,
     "B5": 6, "#4": 6, "5": 7, "B6": 8, "#5": 8, "6": 9,
     "B7": 10, "7": 11
 }
 
-# Lists for speaking calculated note names, chosen based on key context
-SHARP_NOTE_NAMES = [
+# Lists for speaking calculated note names, chosen based on key context and degree
+SHARP_NOTE_NAMES = [ # C, C#, D, D#, E, F, F#, G, G#, A, A#, B
     "C", "C sharp", "D", "D sharp", "E", "F",
     "F sharp", "G", "G sharp", "A", "A sharp", "B"
 ]
-FLAT_NOTE_NAMES = [
+FLAT_NOTE_NAMES = [ # C, Db, D, Eb, E, F, Gb, G, Ab, A, Bb, B
     "C", "D flat", "D", "E flat", "E", "F",
     "G flat", "G", "A flat", "A", "B flat", "B"
 ]
@@ -72,14 +72,32 @@ def speak_text(engine, text):
 
 # --- Tone Generation and Music Logic Functions ---
 def normalize_degree_string(degree_str):
-    s = degree_str.lower().strip().replace("flat ", "b").replace("flat", "b")
-    s = s.replace("sharp ", "#").replace("sharp", "#").replace(" ", "")
-    return s.upper()
+    """Converts various degree inputs to a standard internal format (e.g., 'flat 3' -> 'B3')."""
+    s = degree_str.lower().strip()
+    s = s.replace("flat ", "b").replace("flat", "b")
+    s = s.replace("sharp ", "#").replace("sharp", "#")
+    s = s.replace(" ", "")  # Remove any remaining spaces
+    return s.upper() # Standardize to uppercase for dictionary keys
 
-def get_note_name_from_midi(midi_note_number, key_context_name_str):
+def get_speakable_degree_name(degree_str):
+    """Converts an internal degree string (e.g., 'B3', '#4') to a speakable format (e.g., 'flat 3', 'sharp 4')."""
+    # First, ensure the input is in the normalized internal format if it's something like "flat 3"
+    normalized_internal = normalize_degree_string(degree_str) 
+
+    if normalized_internal.startswith('B'):
+        return "flat " + normalized_internal[1:]
+    elif normalized_internal.startswith('#'):
+        return "sharp " + normalized_internal[1:]
+    # Handle cases where degree_str might already be "1", "2", etc. and normalize_degree_string keeps it as such
+    elif degree_str.upper().startswith('B'): # Catch if original was "b3" and normalize made it "B3"
+         return "flat " + degree_str[1:]
+    elif degree_str.upper().startswith('#'): # Catch if original was "#4" and normalize made it "#4"
+         return "sharp " + degree_str[1:]
+    return degree_str # Return as is if it's a natural number or already speakable
+
+def get_note_name_from_midi(midi_note_number, key_context_name_str, original_degree_str):
     """
-    Converts MIDI note to a speakable name (e.g., 'C sharp' or 'D flat'),
-    preferring flats for flat keys (like F, Bb, Db) and sharps otherwise.
+    Converts MIDI note to a speakable name, considering key context and original degree.
     Octave is not included.
     """
     if not (0 <= midi_note_number <= 127):
@@ -87,22 +105,28 @@ def get_note_name_from_midi(midi_note_number, key_context_name_str):
     
     note_index = midi_note_number % 12
     
-    # Determine if the key context suggests using flat names
-    # key_context_name_str is the user's input for the current key (e.g., "Db", "F", "C#")
+    # Normalize the original degree string to check for explicit flats/sharps
+    normalized_original_degree = normalize_degree_string(original_degree_str)
+
+    # Default assumption based on key context
     processed_key_name_for_context_check = key_context_name_str.upper()
-    
-    use_flats = False
-    # Prefer flats if key name itself is 'F' (e.g. "F major")
+    use_flats_due_to_key = False
     if processed_key_name_for_context_check == "F":
-        use_flats = True
-    # Prefer flats if key name contains 'B' (for flat, e.g., "Db", "Bb")
-    # but not 'B#' (which is C, a sharp context by default for C)
+        use_flats_due_to_key = True
     elif 'B' in processed_key_name_for_context_check and "B#" not in processed_key_name_for_context_check:
-        use_flats = True
+        use_flats_due_to_key = True
         
-    if use_flats:
+    # Override based on the nature of the scale degree itself
+    if normalized_original_degree.startswith('B'): # e.g., "b3", "b7"
+        final_use_flats = True
+    elif normalized_original_degree.startswith('#'): # e.g., "#4", "#5"
+        final_use_flats = False
+    else: # Natural degree (e.g., "1", "3", "5"), rely on key context
+        final_use_flats = use_flats_due_to_key
+        
+    if final_use_flats:
         return FLAT_NOTE_NAMES[note_index]
-    else: # Default to sharps for C, G, D, A, E, B, F#, C# and other contexts
+    else:
         return SHARP_NOTE_NAMES[note_index]
 
 def calculate_frequency_and_midi(root_key_midi_note, degree_interval_semitones):
@@ -142,11 +166,9 @@ def play_generated_tone(frequency, duration_sec):
 
 def activate_key(key_name, octave, tts_engine, unique_elements_ref):
     """Announces new key, calculates its root MIDI, and resets play counts."""
-    # Use the user-provided key_name for speech
     speak_text(tts_engine, f"New Key: {key_name}") 
     time.sleep(NEW_KEY_ANNOUNCEMENT_DELAY_SEC)
     
-    # Use uppercase for dictionary lookup
     key_semitone_offset = NOTES_SEMITONES_FROM_C[key_name.upper()] 
     key_root_midi_note = (octave + 1) * 12 + key_semitone_offset
     
@@ -175,10 +197,10 @@ def main():
     elements_list_raw = [elem.strip() for elem in args.elements_string.split(',') if elem.strip()]
     if not elements_list_raw:
         print("Error: No valid elements in elements_string."); sys.exit(1)
-    unique_elements = sorted(list(set(elements_list_raw)))
-    print(f"Unique scale degrees to be practiced: {unique_elements}")
+    # unique_elements are the original strings from the input, used for tracking and selection
+    unique_elements_as_input = sorted(list(set(elements_list_raw)))
+    print(f"Unique scale degrees to be practiced (as input): {unique_elements_as_input}")
 
-    # Keep original casing for announcements, use .upper() for logic/lookups
     key_strings_input_original_case = [k.strip() for k in args.key.split(',') if k.strip()]
     if not key_strings_input_original_case:
         print("Error: No valid keys provided in --key argument."); sys.exit(1)
@@ -190,7 +212,6 @@ def main():
     
     print(f"Key sequence: {key_strings_input_original_case}")
     print(f"Plays per unique element per key: {args.plays_per_key}")
-    # ... (rest of the print statements from before)
 
     tts_engine = initialize_tts_engine()
     try:
@@ -204,68 +225,75 @@ def main():
         print(f"Error initializing Pygame: {e}"); sys.exit(1)
 
     current_key_idx = 0
-    # Use original case key name for context and announcements
     current_key_name_original_case = key_strings_input_original_case[current_key_idx] 
     current_key_root_midi_note, element_play_counts_for_current_key = activate_key(
-        current_key_name_original_case, args.octave, tts_engine, unique_elements
+        current_key_name_original_case, args.octave, tts_engine, unique_elements_as_input
     )
 
     try:
         print(f"\nStarting practice. Press Ctrl+C to stop.")
         while True:
             num_elements_fully_played_this_key_session = sum(
-                1 for el in unique_elements if element_play_counts_for_current_key.get(el, 0) >= args.plays_per_key
+                1 for el in unique_elements_as_input if element_play_counts_for_current_key.get(el, 0) >= args.plays_per_key
             )
 
-            if num_elements_fully_played_this_key_session == len(unique_elements):
+            if num_elements_fully_played_this_key_session == len(unique_elements_as_input):
                 print(f"\n--- Key '{current_key_name_original_case}' session complete. ---")
                 current_key_idx = (current_key_idx + 1) % len(key_strings_input_original_case)
                 current_key_name_original_case = key_strings_input_original_case[current_key_idx]
                 current_key_root_midi_note, element_play_counts_for_current_key = activate_key(
-                    current_key_name_original_case, args.octave, tts_engine, unique_elements
+                    current_key_name_original_case, args.octave, tts_engine, unique_elements_as_input
                 )
                 print(f"--- Continuing with new key: {current_key_name_original_case} ---")
                 continue
 
             eligible_elements_to_play = [
-                el for el in unique_elements if element_play_counts_for_current_key.get(el, 0) < args.plays_per_key
+                el for el in unique_elements_as_input if element_play_counts_for_current_key.get(el, 0) < args.plays_per_key
             ]
             if not eligible_elements_to_play:
                 print("Error: No eligible elements to play logic error."); time.sleep(1); continue 
 
-            selected_element_text = random.choice(eligible_elements_to_play)
+            selected_element_text_as_input = random.choice(eligible_elements_to_play) # This is the original string like "b3" or "flat 3"
             
-            print(f"\nNext element for key {current_key_name_original_case}: '{selected_element_text}'")
-            speak_text(tts_engine, selected_element_text)
+            # For speaking the degree itself
+            speakable_degree_name = get_speakable_degree_name(selected_element_text_as_input)
+            print(f"\nNext element for key {current_key_name_original_case}: '{selected_element_text_as_input}' (spoken as '{speakable_degree_name}')")
+            speak_text(tts_engine, speakable_degree_name)
             
-            normalized_degree = normalize_degree_string(selected_element_text)
+            # For internal logic and tone calculation, use the normalized version
+            normalized_degree_for_logic = normalize_degree_string(selected_element_text_as_input)
+            
             frequency_to_play, target_midi_note_played = None, None
             time_spent_on_audio_events = 0.0
 
-            if normalized_degree in DEGREE_SEMITONE_INTERVALS:
-                degree_interval = DEGREE_SEMITONE_INTERVALS[normalized_degree]
+            if normalized_degree_for_logic in DEGREE_SEMITONE_INTERVALS:
+                degree_interval = DEGREE_SEMITONE_INTERVALS[normalized_degree_for_logic]
                 frequency_to_play, target_midi_note_played = calculate_frequency_and_midi(
                     current_key_root_midi_note, degree_interval
                 )
             else:
-                print(f"Warning: Scale degree '{selected_element_text}' (norm: '{normalized_degree}') not recognized.")
+                print(f"Warning: Scale degree '{selected_element_text_as_input}' (norm: '{normalized_degree_for_logic}') not recognized.")
 
             if frequency_to_play is not None:
                 play_generated_tone(frequency_to_play, TONE_DURATION_SEC)
                 time_spent_on_audio_events += TONE_DURATION_SEC
 
                 if target_midi_note_played is not None:
-                    # Pass the original case key name for context
-                    note_name_to_speak = get_note_name_from_midi(target_midi_note_played, current_key_name_original_case)
+                    # Pass the original input string for the degree to help with enharmonic context
+                    note_name_to_speak = get_note_name_from_midi(
+                        target_midi_note_played, 
+                        current_key_name_original_case, 
+                        selected_element_text_as_input # Pass the original degree string
+                    )
                     time.sleep(args.tone_name_delay)
                     time_spent_on_audio_events += args.tone_name_delay
                     speak_text(tts_engine, note_name_to_speak)
             
-            element_play_counts_for_current_key[selected_element_text] = \
-                element_play_counts_for_current_key.get(selected_element_text, 0) + 1
+            element_play_counts_for_current_key[selected_element_text_as_input] = \
+                element_play_counts_for_current_key.get(selected_element_text_as_input, 0) + 1
             
-            print(f"Element '{selected_element_text}' play count for key {current_key_name_original_case}: "
-                  f"{element_play_counts_for_current_key[selected_element_text]}/{args.plays_per_key}")
+            print(f"Element '{selected_element_text_as_input}' play count for key {current_key_name_original_case}: "
+                  f"{element_play_counts_for_current_key[selected_element_text_as_input]}/{args.plays_per_key}")
 
             sleep_for = args.delay - time_spent_on_audio_events
             if sleep_for > 0:
